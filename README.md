@@ -1,6 +1,6 @@
 # ghsplit
 
-Automatically split and merge large files so that they don't exceed Github's quota.
+Automatically split and merge large files that exceed a certain limit.
 
 ## Installation
 ```
