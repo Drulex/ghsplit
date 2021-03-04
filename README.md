@@ -4,10 +4,12 @@ Automatically split and merge large files that exceed a certain limit.
 
 ## Installation
 ```
-pip install --user -e .
+# to install the package in a user's home directory (user site packages):
+pip install --user .
 
-# alternatively
-make install
+# global install (global site packages)
+pip install .
+
 ```
 
 ## Testing
