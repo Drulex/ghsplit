@@ -2,82 +2,71 @@
 
 Automatically split and merge large files so that they don't exceed Github's quota.
 
+## Installation
+```
+pip install --user -e .
+
+# alternatively
+make install
+```
+
+## Testing
+```
+make test
+```
+
 ## Usage
 
-Simply use `ghsplit.py -split` before pushing and `ghsplit -merge` after pulling.
+Simply use `ghsplit split` before pushing and `ghsplit merge` after pulling.
 
 ```
 $ python ghsplit.py -h
-usage: ghsplit.py [-split | -merge] [-h] [--log-level LOG_LEVEL] [--root ROOT]
-                  [--chunk-size CHUNK_SIZE]
+usage: ghsplit [-h] [--log-level LOG_LEVEL] [--root ROOT] {split,merge} ...
 
 Manipulate large files to avoid exceeding Github quotas
 
+positional arguments:
+  {split,merge}         the command; type "ghsplit COMMAND -h" for command-
+                        specific help
+    split               Split large files into chunks
+    merge               Merge chunks into large files
+
 optional arguments:
-  -split                Automatically split files exceeding github's quota (do
-                        this before commit/push!)
-  -merge                Automatically merge split files (do this after
-                        fetching/pulling!)
   -h, --help            show this help message and exit
   --log-level LOG_LEVEL
                         Logging level (eg. INFO, see Python logging docs)
   --root ROOT           Root dir to look for large files (recursively). $CWD
                         if None.
+```
+
+Splitting has some options available:
+```
+usage: ghsplit split [-h] [--chunk-size CHUNK_SIZE] [--max-size MAX_SIZE]
+                     [--extension EXTENSION]
+
+optional arguments:
+  -h, --help            show this help message and exit
   --chunk-size CHUNK_SIZE
                         Chunk size (in MiB). Default=50
+  --max-size MAX_SIZE   Max size of file before splitting (in MiB). Default=99
+  --extension EXTENSION
+                        Only consider files with a specific extension (e.g.
+                        '.bin')
 ```
 
-### Prior to pushing
+### Splitting examples
 ```
-$ ls -lh big_files_directory/
-total 233M
--rw-r--r-- 1 drulex drulex 233M Mar  4 11:33 bigfile1.nii.gz
+# split all files in current working dir that are greater than 99Mib in chunks of 50MiB (GH compatible)
+$ ghsplit split
 
-$ md5sum big_files_directory/*
-138a2dc926d2616e96df6a433043f750  big_files_directory/bigfile1.nii.gz
+# split only niftii files greater than 25MiB in the template directory in chunks of 5MiB
+$ ghsplit --root=template split --max-size=25 --extension=.nii.gz --chunk-size=5
 
-$ python ghsplit.py --root big_files_directory/ -split
-INFO Splitting file big_files_directory/bigfile1.nii.gz
-Don't forget to commit big_files_directory/bigfile1.nii.gz.ghsplit.00!
-Don't forget to commit big_files_directory/bigfile1.nii.gz.ghsplit.01!
-Don't forget to commit big_files_directory/bigfile1.nii.gz.ghsplit.02!
-Don't forget to commit big_files_directory/bigfile1.nii.gz.ghsplit.03!
-Don't forget to commit big_files_directory/bigfile1.nii.gz.ghsplit.04!
-
-$ ls -lh big_files_directory/
-total 233M
--rw-r--r-- 1 drulex drulex 50M Mar  4 11:34 bigfile1.nii.gz.ghsplit.00
--rw-r--r-- 1 drulex drulex 50M Mar  4 11:34 bigfile1.nii.gz.ghsplit.01
--rw-r--r-- 1 drulex drulex 50M Mar  4 11:34 bigfile1.nii.gz.ghsplit.02
--rw-r--r-- 1 drulex drulex 50M Mar  4 11:34 bigfile1.nii.gz.ghsplit.03
--rw-r--r-- 1 drulex drulex 33M Mar  4 11:34 bigfile1.nii.gz.ghsplit.04
-
-$ git add big_files_directory/*.ghsplit.*
-
-$ git commit -m "Added bigfile1.nii.gz"
-[master 44331d4] Added bigfile1.nii.gz
- 5 files changed, 0 insertions(+), 0 deletions(-)
- create mode 100644 big_files_directory/bigfile1.nii.gz.ghsplit.00
- create mode 100644 big_files_directory/bigfile1.nii.gz.ghsplit.01
- create mode 100644 big_files_directory/bigfile1.nii.gz.ghsplit.02
- create mode 100644 big_files_directory/bigfile1.nii.gz.ghsplit.03
- create mode 100644 big_files_directory/bigfile1.nii.gz.ghsplit.04
-
-$ git push origin ...
 ```
 
-### After pulling
+### Merging example
 ```
-$ python ghsplit.py --root big_files_directory/ -merge
-INFO Merging big_files_directory/bigfile1.nii.gz
-Merged big_files_directory/bigfile1.nii.gz from chunks
-
-$ ls -lh big_files_directory/
-total 233M
--rw-r--r-- 1 drulex drulex 233M Mar  4 11:35 bigfile1.nii.gz
-
-$ md5sum big_files_directory/*
-138a2dc926d2616e96df6a433043f750  big_files_directory/bigfile1.nii.gz
-
+# you can always safely run this to merge all splitted files
+$ ghsplit merge
 ```
 
