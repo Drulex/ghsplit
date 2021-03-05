@@ -9,6 +9,8 @@ from typing import Sequence
 
 logger = logging.getLogger(__name__)
 
+# TODO augment with user provided patterns
+ignore = [".ghsplit", ".git"]
 
 def find_files_to_split(max_size_MiB: int, root: str=None, ext: str=None):
     if root is None:
@@ -24,7 +26,7 @@ def find_files_to_split(max_size_MiB: int, root: str=None, ext: str=None):
         glob_pattern = "**/*"
 
     for f in Path(root).glob(glob_pattern):
-        if ".ghsplit" in f.name:
+        if any(pattern in str(f) for pattern in ignore):
             continue
         if f.stat().st_size > (max_size_MiB * 1024 * 1024):
             to_split.append(f)
